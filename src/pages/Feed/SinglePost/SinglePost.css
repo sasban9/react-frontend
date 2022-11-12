@@ -13,8 +13,8 @@
 }
 
 .single-post__image {
-  height: 20rem;
-  width: 20rem;
+  max-height: 50vh;
+  height: 50vw;
   margin: 1rem auto;
 }
 
