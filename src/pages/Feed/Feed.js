@@ -15,6 +15,7 @@ class Feed extends Component {
     isEditing: false,
     posts: [],
     totalPosts: 0,
+    perPage: 4,
     editPost: null,
     status: "",
     postPage: 1,
@@ -90,10 +91,10 @@ class Feed extends Component {
       page--;
       this.setState({ postPage: page });
     }
-    fetch("http://localhost:8080/feed/posts?page=" + page, {
+    fetch("http://localhost:8080/feed/posts?page=" + page + "&perPage=" + this.state.perPage, {
       headers: {
         Authorization: "Bearer " + this.props.token,
-      },
+      }
     })
       .then((res) => {
         if (res.status !== 200) {
@@ -110,6 +111,7 @@ class Feed extends Component {
             };
           }),
           totalPosts: resData.totalItems,
+          perPage: resData.perPage,
           postsLoading: false,
         });
       })
@@ -308,7 +310,7 @@ class Feed extends Component {
             <Paginator
               onPrevious={this.loadPosts.bind(this, "previous")}
               onNext={this.loadPosts.bind(this, "next")}
-              lastPage={Math.ceil(this.state.totalPosts / 2)}
+              lastPage={Math.ceil(this.state.totalPosts / this.state.perPage)}
               currentPage={this.state.postPage}
             >
               {this.state.posts.map((post) => (
