@@ -14,8 +14,15 @@
 
 .single-post__image {
   max-height: 50vh;
-  height: 50vw;
+  /* height: 50vw; */
   margin: 1rem auto;
+}
+
+.single-post__image img {
+  max-height: 50vh;
+  /* height: 50vw; */
+  max-width: 100%;
+  width: auto;
 }
 
 @media (min-width: 768px) {

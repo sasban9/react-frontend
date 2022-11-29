@@ -47,7 +47,7 @@ class SinglePost extends Component {
           Created by {this.state.author} on {this.state.date}
         </h2>
         <div className="single-post__image">
-          <Image contain imageUrl={this.state.image} />
+          <Image contain imageUrl={this.state.image} alt={this.state.title + ':by ' + this.state.author} />
         </div>
         <p>{this.state.content}</p>
       </section>
