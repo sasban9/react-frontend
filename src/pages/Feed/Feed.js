@@ -96,8 +96,8 @@ class Feed extends Component {
     const graphqlQuery = {
       query: `
         {
-          posts {
-            posts {title content _id creator{name} createdAt}
+          posts(page: ${page}) {
+            posts {title content _id creator{name} imageUrl createdAt}
             totalPosts
           }
         }
@@ -182,29 +182,40 @@ class Feed extends Component {
     });
     // Set up data (with image!)
     const formData = new FormData();
-    formData.append("title", postData.title);
-    formData.append("content", postData.content);
     formData.append("image", postData.image);
-
-    let graphqlQuery = {
-      query: `
-        mutation {
-          createPost(postInput:{title:"${postData.title}",content:"${postData.content}", imageUrl:"some-url"}) {
-            _id title content imageUrl creator {name} createdAt
-          }
-        }
-      `
-    };
-    
-    fetch("http://localhost:8080/graphql", {
-      method: "POST",
-      body: JSON.stringify(graphqlQuery),
+    if (this.state.editPost) {
+      formData.append("oldPath", this.state.editPost.imagePath);
+    }
+    fetch("http://localhost:8080/post-image", {
+      method: "PUT",
       headers: {
-        Authorization: "Bearer " + this.props.token,
-        "Content-Type": "application/json"
+        Authorization: "Bearer " + this.props.token
       },
+      body: formData,
     })
-      .then((res) => {        
+      .then((res) => res.json())
+      .then((fileResData) => {
+        const imageUrl = fileResData.filePath;
+        let graphqlQuery = {
+          query: `
+            mutation {
+              createPost(postInput:{title:"${postData.title}", content:"${postData.content}", imageUrl:"${imageUrl}"}) {
+                _id title content imageUrl creator {name} createdAt
+              }
+            }
+          `
+        };
+        
+        return fetch("http://localhost:8080/graphql", {
+          method: "POST",
+          body: JSON.stringify(graphqlQuery),
+          headers: {
+            Authorization: "Bearer " + this.props.token,
+            "Content-Type": "application/json"
+          },
+        })
+      })
+      .then((res) => {      
         return res.json();
       })
       .then((resData) => {
@@ -212,6 +223,7 @@ class Feed extends Component {
           throw new Error("Validation failed! Make sure the email address isn't used yet!");
         }
         if(resData.errors){
+          // console.log(resData.errors);
           throw new Error("User login failed!");
         }
         console.log(resData);
@@ -221,6 +233,7 @@ class Feed extends Component {
           content: resData.data.createPost.content,
           creator: resData.data.createPost.creator,
           createdAt: resData.data.createPost.createdAt,
+          imagePath: resData.data.createPost.imageUrl,
         };
         this.setState((prevState) => {
           let updatedPosts = [...prevState.posts];
@@ -230,6 +243,7 @@ class Feed extends Component {
             );
             updatedPosts[postIndex] = post;
           } else {
+            updatedPosts.pop();
             updatedPosts.unshift(post);
           }
           return {
